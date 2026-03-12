@@ -1,0 +1,65 @@
+basePath: /
+definitions:
+  models.Segment:
+    properties:
+      payload:
+        description: Полезная нагрузка (часть сообщения)
+        example: часть текста...
+        type: string
+      segment_number:
+        description: Номер сегмента в сообщении
+        example: 1
+        type: integer
+      send_time:
+        description: Время отправки (идентификатор сообщения)
+        example: "2025-03-12T10:00:00Z"
+        type: string
+      total_segments:
+        description: Общее количество сегментов
+        example: 5
+        type: integer
+      username:
+        description: Имя отправителя
+        example: alice
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Заглушка транспортного уровня для демонстрации Swagger.
+  title: Transport Layer API (Stub)
+  version: "1.0"
+paths:
+  /segment:
+    post:
+      consumes:
+      - application/json
+      description: Принимает один сегмент сообщения. В реальной реализации здесь должна
+        быть отправка в Kafka, потеря с вероятностью R% и т.д. В данной заглушке просто
+        возвращается 200 OK.
+      parameters:
+      - description: Данные сегмента
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Segment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сегмент принят (заглушка)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный формат запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Принять сегмент от агента
+      tags:
+      - transport
+swagger: "2.0"
