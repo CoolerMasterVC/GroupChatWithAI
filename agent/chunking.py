@@ -10,9 +10,32 @@ def split_into_sentences(text: str, max_sentences: int = 2) -> List[str]:
     return chunks
 
 def split_into_byte_chunks(text: str, chunk_size: int) -> List[str]:
-    encoded = text.encode('utf-8')
-    byte_chunks = []
-    for i in range(0, len(encoded), chunk_size):
-        byte_chunk = encoded[i:i+chunk_size]
-        byte_chunks.append(byte_chunk.decode('utf-8', errors='ignore'))
-    return byte_chunks
+    """
+    Разбивает текст на сегменты, каждый из которых в UTF-8 занимает не более chunk_size байт.
+    Гарантирует, что символы не разрезаются.
+    """
+    if not text:
+        return [""]
+
+    result = []
+    current_chunk = ""
+    current_chunk_bytes = 0
+
+    for char in text:
+        char_bytes = len(char.encode('utf-8'))
+        # Если добавление текущего символа превысит лимит, сохраняем текущий кусок и начинаем новый
+        if current_chunk_bytes + char_bytes > chunk_size:
+            if current_chunk:
+                result.append(current_chunk)
+            # Начинаем новый кусок с текущего символа
+            current_chunk = char
+            current_chunk_bytes = char_bytes
+        else:
+            current_chunk += char
+            current_chunk_bytes += char_bytes
+
+    # Добавляем последний кусок
+    if current_chunk:
+        result.append(current_chunk)
+
+    return result
