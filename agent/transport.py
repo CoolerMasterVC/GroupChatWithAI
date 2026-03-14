@@ -43,4 +43,4 @@ async def send_response_chunks(response_text: str):
                 #        else:
                 #            await asyncio.sleep(2 ** attempt)
             print("--- Конец логической части ---\n")
-        print("--- Сообщения ---\n")
+        print("---Конец Сообщения ---\n")
