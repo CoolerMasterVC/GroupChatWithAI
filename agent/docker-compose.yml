@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - D:/ollama_data:/root/.ollama   # bind mount на диск D
+    ports:
+      - "11434:11434"
+    environment:
+      - GIN_MODE=release
+    networks:
+      - agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  agent-app:
+    build: .
+    container_name: agent-app
+    ports:
+      - "8001:8001"
+    environment:
+      - TRANSPORT_URL=http://transport-service:8080/api/transfer
+      - OLLAMA_URL=http://ollama:11434
+      - SEGMENT_SIZE_BYTES=100 # 350
+      - MODEL_NAME=mistral:7b-instruct
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - agent-network
+    restart: unless-stopped
+
+networks:
+  agent-network:
+    driver: bridge
+
+# Том больше не нужен, поэтому удаляем раздел volumes:
+# volumes:
+#   ollama_data:

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+*.log
+*.bak
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Docker
+*.pid
+docker-compose.override.yml
+.DS_Store
+
+# Project specific
+# если есть папки с кешами моделей и т.п.
+ollama_data/
