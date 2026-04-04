@@ -1,5 +1,5 @@
 import httpx
-from config import OLLAMA_URL, MODEL_NAME
+from app.config import OLLAMA_URL, MODEL_NAME
 
 async def call_llm(prompt: str) -> str:
     async with httpx.AsyncClient() as client:

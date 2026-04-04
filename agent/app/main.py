@@ -1,9 +1,9 @@
 from fastapi import FastAPI, BackgroundTasks
 from datetime import datetime, timezone
-from models import SummarizationRequest, Frame
-from llm import call_llm
-from transport import send_response_chunks
-from config import TRANSPORT_URL, SEGMENT_SIZE_BYTES, OLLAMA_URL, MODEL_NAME
+from app.models import SummarizationRequest, Frame
+from app.llm import call_llm
+from app.transport import send_response_chunks
+from app.config import TRANSPORT_URL, SEGMENT_SIZE_BYTES, OLLAMA_URL, MODEL_NAME
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import asyncio
@@ -22,7 +22,7 @@ app.add_middleware(
 async def process_request_and_send(sender: str, timestamp: str, prompt: str):
     try:
         summary = await call_llm(prompt)
-        await send_response_chunks(summary)
+        await send_response_chunks(summary,  timestamp)
     except Exception as e:
         print(f"Error processing request {timestamp}: {e}")
         # Отправка кадра с ошибкой
