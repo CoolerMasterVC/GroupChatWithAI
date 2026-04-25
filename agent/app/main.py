@@ -22,7 +22,7 @@ app.add_middleware(
 async def process_request_and_send(sender: str, timestamp: str, prompt: str):
     try:
         summary = await call_llm(prompt)
-        await send_response_chunks(summary,  timestamp)
+        await send_response_chunks(summary,  timestamp, sender) # добавил sender
     except Exception as e:
         print(f"Error processing request {timestamp}: {e}")
         # Отправка кадра с ошибкой
@@ -31,7 +31,8 @@ async def process_request_and_send(sender: str, timestamp: str, prompt: str):
             send_time=error_timestamp,
             total_segments=1,
             segment_number=0,
-            payload=""
+            payload="",
+            username=sender # опционально
         )
         async with httpx.AsyncClient() as client:
             try:

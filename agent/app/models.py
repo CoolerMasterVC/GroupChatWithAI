@@ -10,3 +10,4 @@ class Frame(BaseModel):
     total_segments: int = Field(..., description="Общее количество сегментов")
     segment_number: int = Field(..., description="Номер сегмента (0-based)")
     payload: str = Field(..., description="Фрагмент данных")
+    username: str = Field(..., description="Отправитель запроса")   # опционально 
