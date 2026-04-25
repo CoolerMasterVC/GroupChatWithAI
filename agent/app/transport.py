@@ -17,7 +17,7 @@ async def send_response_chunks(response_text: str, send_time: str, username: str
         logical_chunks = [""]
 
     # 2. Для каждого логического куска получаем байтовые сегменты и собираем общий список
-    all_segments = []          # список кортежей (номер_логического_куска, payload)
+    all_segments = []          
     for chunk_idx, chunk in enumerate(logical_chunks):
         byte_segments = split_into_byte_chunks(chunk, SEGMENT_SIZE_BYTES)
         for seg in byte_segments:
