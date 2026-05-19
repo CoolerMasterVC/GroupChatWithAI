@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/segment": {
+        "/send": {
             "post": {
-                "description": "Принимает один сегмент сообщения. В реальной реализации здесь должна быть отправка в Kafka, потеря с вероятностью R% и т.д. В данной заглушке просто возвращается 200 OK.",
+                "description": "Принимает полное сообщение от прикладного уровня и отправляет его целиком на агентный уровень (без разбиения на сегменты)",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,35 +27,75 @@ const docTemplate = `{
                 "tags": [
                     "transport"
                 ],
-                "summary": "Принять сегмент от агента",
+                "summary": "Передать сообщение от прикладного уровня на агентный уровень",
                 "parameters": [
                     {
-                        "description": "Данные сегмента",
-                        "name": "segment",
+                        "description": "Полное сообщение от пользователя",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Segment"
+                            "$ref": "#/definitions/models.SendRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Сегмент принят (заглушка)",
+                        "description": "Сообщение успешно передано",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный формат запроса",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Ошибка при передаче на агентный уровень",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/transfer": {
+            "post": {
+                "description": "Принимает сегмент от агента и сохраняет для последующей сборки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transport"
+                ],
+                "summary": "Принять сегмент от агентного уровня",
+                "parameters": [
+                    {
+                        "description": "Сегмент сообщения",
+                        "name": "segment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Сегмент принят",
+                        "schema": {
+                            "$ref": "#/definitions/models.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -63,26 +103,68 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Segment": {
+        "models.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "description": "Текст ошибки",
+                    "type": "string",
+                    "example": "invalid json"
+                }
+            }
+        },
+        "models.SendRequest": {
+            "description": "Полное сообщение, которое транспортный уровень передаёт агентному уровню без изменений",
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Текст сообщения",
+                    "type": "string",
+                    "example": "Привет, как дела?"
+                },
+                "send_time": {
+                    "description": "Время отправки",
+                    "type": "string",
+                    "example": "2025-03-29T12:00:00Z"
+                },
+                "username": {
+                    "description": "Отправитель",
+                    "type": "string",
+                    "example": "alice"
+                }
+            }
+        },
+        "models.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "description": "Статус операции",
+                    "type": "string",
+                    "example": "accepted"
+                }
+            }
+        },
+        "models.TransferRequest": {
+            "description": "Сегмент разбитого сообщения",
             "type": "object",
             "properties": {
                 "payload": {
-                    "description": "Полезная нагрузка (часть сообщения)",
+                    "description": "Данные сегмента",
                     "type": "string",
                     "example": "часть текста..."
                 },
                 "segment_number": {
-                    "description": "Номер сегмента в сообщении",
+                    "description": "Номер сегмента (с 1)",
                     "type": "integer",
                     "example": 1
                 },
                 "send_time": {
-                    "description": "Время отправки (идентификатор сообщения)",
+                    "description": "Время отправки (ID сообщения)",
                     "type": "string",
-                    "example": "2025-03-12T10:00:00Z"
+                    "example": "2025-03-29T12:00:00Z"
                 },
                 "total_segments": {
-                    "description": "Общее количество сегментов",
+                    "description": "Всего сегментов в сообщении",
                     "type": "integer",
                     "example": 5
                 },
@@ -102,8 +184,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Transport Layer API (Stub)",
-	Description:      "Заглушка транспортного уровня для демонстрации Swagger.",
+	Title:            "Transport Layer API",
+	Description:      "API транспортного уровня для обмена сообщениями между прикладным и агентным уровнями.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

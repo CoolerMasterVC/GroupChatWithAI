@@ -1,0 +1,123 @@
+basePath: /
+definitions:
+  models.ErrorResponse:
+    properties:
+      error:
+        description: Текст ошибки
+        example: invalid json
+        type: string
+    type: object
+  models.SendRequest:
+    description: Полное сообщение, которое транспортный уровень передаёт агентному
+      уровню без изменений
+    properties:
+      data:
+        description: Текст сообщения
+        example: Привет, как дела?
+        type: string
+      send_time:
+        description: Время отправки
+        example: "2025-03-29T12:00:00Z"
+        type: string
+      username:
+        description: Отправитель
+        example: alice
+        type: string
+    type: object
+  models.SuccessResponse:
+    properties:
+      status:
+        description: Статус операции
+        example: accepted
+        type: string
+    type: object
+  models.TransferRequest:
+    description: Сегмент разбитого сообщения
+    properties:
+      payload:
+        description: Данные сегмента
+        example: часть текста...
+        type: string
+      segment_number:
+        description: Номер сегмента (с 1)
+        example: 1
+        type: integer
+      send_time:
+        description: Время отправки (ID сообщения)
+        example: "2025-03-29T12:00:00Z"
+        type: string
+      total_segments:
+        description: Всего сегментов в сообщении
+        example: 5
+        type: integer
+      username:
+        description: Имя отправителя
+        example: alice
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API транспортного уровня для обмена сообщениями между прикладным и
+    агентным уровнями.
+  title: Transport Layer API
+  version: "1.0"
+paths:
+  /send:
+    post:
+      consumes:
+      - application/json
+      description: Принимает полное сообщение от прикладного уровня и отправляет его
+        целиком на агентный уровень (без разбиения на сегменты)
+      parameters:
+      - description: Полное сообщение от пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение успешно передано
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "502":
+          description: Ошибка при передаче на агентный уровень
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Передать сообщение от прикладного уровня на агентный уровень
+      tags:
+      - transport
+  /transfer:
+    post:
+      consumes:
+      - application/json
+      description: Принимает сегмент от агента и сохраняет для последующей сборки
+      parameters:
+      - description: Сегмент сообщения
+        in: body
+        name: segment
+        required: true
+        schema:
+          $ref: '#/definitions/models.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сегмент принят
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Принять сегмент от агентного уровня
+      tags:
+      - transport
+swagger: "2.0"
