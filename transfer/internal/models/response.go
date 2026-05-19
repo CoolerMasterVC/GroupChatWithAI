@@ -1,11 +1,11 @@
 package models
 
-// SuccessResponse успешный ответ
+// SuccessResponse — стандартный успешный ответ
 type SuccessResponse struct {
-	Status string `json:"status" example:"accepted"` // Статус операции
+	Status string `json:"status" example:"accepted"`
 }
 
-// ErrorResponse ответ с ошибкой
+// ErrorResponse — ответ с ошибкой
 type ErrorResponse struct {
-	Error string `json:"error" example:"invalid json"` // Текст ошибки
+	Error string `json:"error" example:"invalid json"`
 }
