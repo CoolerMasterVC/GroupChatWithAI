@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -24,9 +25,17 @@ func NewStorage() *Storage {
 	}
 }
 
+// AddOrUpdate добавляет сегмент. Если номер сегмента некорректен, логирует ошибку и не меняет хранилище.
 func (s *Storage) AddOrUpdate(sendTime time.Time, segmentNumber, totalSegments int, username, payload string) {
+	// Валидация номера сегмента
+	if segmentNumber < 1 || segmentNumber > totalSegments {
+		log.Printf("[STORAGE] invalid segment number %d (total %d) for %s, skipping", segmentNumber, totalSegments, sendTime)
+		return
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	info, exists := s.data[sendTime]
 	if !exists {
 		info = SegmentInfo{
@@ -36,6 +45,14 @@ func (s *Storage) AddOrUpdate(sendTime time.Time, segmentNumber, totalSegments i
 			Username: username,
 			Segments: make([]string, totalSegments),
 		}
+	}
+	// Дополнительная проверка, что слайс создан
+	if len(info.Segments) != totalSegments {
+		// Если totalSegments изменилось, пересоздаём слайс (такое бывает редко)
+		newSegments := make([]string, totalSegments)
+		copy(newSegments, info.Segments)
+		info.Segments = newSegments
+		info.Total = totalSegments
 	}
 	info.Segments[segmentNumber-1] = payload
 	info.Received++

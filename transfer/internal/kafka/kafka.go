@@ -81,6 +81,11 @@ func StartConsumer(store *storage.Storage) {
 					log.Printf("Unmarshal error: %v", err)
 					continue
 				}
+				// Валидация номера сегмента
+				if seg.SegmentNumber < 1 || seg.SegmentNumber > seg.TotalSegments {
+					log.Printf("[KAFKA] invalid segment number %d (total %d) from %s, skipping", seg.SegmentNumber, seg.TotalSegments, seg.SendTime)
+					continue
+				}
 				store.AddOrUpdate(seg.SendTime, seg.SegmentNumber, seg.TotalSegments, seg.Username, seg.Payload)
 				log.Printf("[KAFKA] consumed segment %d/%d for %s", seg.SegmentNumber, seg.TotalSegments, seg.SendTime)
 
